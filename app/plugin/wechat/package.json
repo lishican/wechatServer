@@ -1,0 +1,20 @@
+{
+  "name": "h-wechat",
+  "version": "1.0.0",
+  "description": "nodejs的wechat",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "nodejs",
+    "wexin",
+    "wechat",
+    "sdk"
+  ],
+  "author": "lishican",
+  "license": "MIT"
+}

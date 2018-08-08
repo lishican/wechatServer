@@ -1,0 +1,8 @@
+node_modules/
+./**/node_modules
+bower_components/
+*.logs
+./logs
+logs/*
+build/
+dist/

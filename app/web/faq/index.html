@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>超碧答题王</title>
+  <link rel="stylesheet" href="/faq/app/css/reset.css">
+  <link rel="stylesheet" href="/faq/app/js/vendor/animate.min.css">
+  <link rel="stylesheet" href="/faq/app/css/main.css">
+  <script src='/faq/app/js/vendor/fastclick.min.js'></script>
+  <script src="/faq/app/js/webinit.js"></script>
+
+</head>
+
+<body>
+  <input type="hidden" name="nickName" id="nickName" value="<%= userinfo['nickname'] %>">
+  <input type="hidden" name="openId" id="openId" value="<%= userinfo['openid'] %>">
+  <input type="hidden" name="headImg" id="headImg" value="<%= userinfo['headimgurl'] %>">
+  <div id="app" class="app" v-cloak>
+    <div class="page share" v-if='showShare' @click='showShare=false'>
+      <img src="/faq/app/img/share.png" alt="">
+    </div>
+    <div class="loading page" v-show="isLoading" ref="loading" @touchstart.stop.prevent.capture='false'>
+      <div class="inner">数据加载中</div>
+    </div>
+    <div class="page name_model" v-show='showLabel'>
+      <div class="inner animated zoomIn">
+        <p>恭喜您获得了称号</p>
+        <div class="img animated bounceIn">
+          <img src="/faq/app/img/one.png" alt="">
+          <div>{{currentLabel}}</div>
+        </div>
+
+        <div class="next_btn c animated fadeInLeft" @click='showShareFb'>
+          马上炫耀
+        </div>
+        <div class="next_btn animated fadeInRight" @click='gohome'>
+          返回首页
+        </div>
+      </div>
+    </div>
+    <div class="page success_model" v-show='showResult'>
+      <div class="inner animated zoomIn">
+        <img src="/faq/app/img/ok.png" alt="">
+        <p>恭喜您获得了</p>
+        <p>+{{result.cids.length}}积分（答对{{result.cids.length}}题）</p>
+        <div class="explain">积分{{oldUser.point}} ↑ {{result.cids.length}}</div>
+
+        <div class="next_btn c" @click="restart">
+          继续答题
+        </div>
+        <div class="next_btn " @click="gohome">
+          返回首页
+        </div>
+      </div>
+    </div>
+    <div class="page err_model " v-show='showExplain'>
+      <div class="inner animated zoomIn">
+        <img src="/faq/app/img/error.png" alt="">
+        <p>答错了</p>
+        <div class="explain" v-if='showExplain'>答案：{{problemData.cproblem.correctAnswer}}</div>
+        <div class="explain" v-if='showExplain'>解释：{{problemData.cproblem.detail}}</div>
+        <div class="next_btn" @click='doNext'>
+          下一题
+        </div>
+      </div>
+    </div>
+    <div class="page main" v-show="currentPage==2">
+      <div class="me animated fadeInDown">
+        <img src="/faq/app/img/head.png" alt="">
+        <div class="inner">{{user.userName}}</div>
+        <!-- <div class="point">当前积分：{{user.point}}</div> -->
+        <div class="point"></div>
+      </div>
+      <div class="back" @click='gohome'>
+        <img src="/faq/app/img/back.png" alt="">
+      </div>
+      <div class="info">
+        <div class="order">{{problemData.currentOrder+1>10?10:problemData.currentOrder+1}}/{{problemData.problems.length}}</div>
+        <div class="time">{{problemData.downTime}}s</div>
+      </div>
+      <div v-if='problemData.cproblem' :class="['problem', 'animated', problemData.isShowProblem?'fadeInDown':'zoomOut']">
+        <p>{{problemData.currentOrder+1}}、{{problemData.cproblem.problem}}</p>
+      </div>
+      <div class="cont" v-if='problemData.cproblem'>
+        <div @click="choseItem(item,index)" :class="['itemn', 'animated', problemData.isShowProblem?'zoomIn':'zoomOut',problemData.ok_index==index?'success':'',problemData.err_index==index?'error':'']"
+          v-for="(item, index) in problemData.cproblem.answers" :key="index">{{item}}</div>
+        <!-- <div class="itemn" @click="doNext(item)" >下一题</div> -->
+      </div>
+    </div>
+    <div class="page rank" v-show='currentPage==3'>
+
+      <div class="title">
+        <div class="t2">知识排行榜</div>
+      </div>
+      <div class="back" @click='currentPage=1'>
+        <img src="/faq/app/img/back.png" alt="">
+      </div>
+      <div class="me_list">
+        <div class="list">
+          <div class="item" v-for="(item, index) in ranks" :key="index">
+            <div class="bottom">
+              <div class="rank2">{{index+1}}</div>
+              <div class="img">
+                <img :src="item.headImg" alt="">
+              </div>
+              <div class="info">
+  
+                <div class="name">{{item.userName}}</div>
+                <div class="point">
+                  <img src="/faq/app/img/star.png" alt="">
+                  <span>{{item.point}}</span>
+                </div>
+              </div>
+  
+            </div>
+          </div>
+        </div>
+        <div class="me">
+          <p>当前我的总排名：{{myRank}}</p>
+          <div class="progress">
+            <div class="inner">我</div>
+            <div class="point">当前积分：{{user.point}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="page home" v-show='currentPage==1'>
+      <div class="card">
+        <div class="top">
+          <div class="rank_one">
+            <img src="/faq/app/img/2.png" alt="">
+            <div class="text">
+              <div class="t1">第一名</div>
+              <div class="t2">{{topOne.userName}}</div>
+              <div class="t3">
+                <span>{{topOne.point}}</span>积分</div>
+            </div>
+          </div>
+          <div class="rank2" @click='seeRank'>
+            <img src="/faq/app/img/5.png" alt="">
+            <div>排行榜</div>
+          </div>
+        </div>
+        <div class="middle_btn" @click='goEnter'>
+          <img src="/faq/app/img/1.png" alt="">
+          <div class="t1">考试答题</div>
+          <div class="t2">进入</div>
+        </div>
+        <div class="bottom">
+          <div class="rank2">{{myRank}}</div>
+          <div class="img">
+            <img :src="user.headImg" alt="">
+          </div>
+          <div class="info">
+
+            <div class="name">{{user.userName}}</div>
+            <div class="point">
+              <img src="/faq/app/img/star.png" alt="">
+              <span>{{user.point}}</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- 绑定姓名 -->
+    <div class="page login" v-show='showLogin'>
+      <div class="login_inner animated fadeInDown">
+        <div class="title">用户登录</div>
+        <div class="input">
+          <input v-model='userName' type="text" placeholder="请输入您参与的昵称">
+        </div>
+        <div class="btn" @click='bindUser'>提交</div>
+      </div>
+    </div>
+  </div>
+
+  <script src="http://qn.kiis.cn/vconsole.min.js"></script>
+
+  <script>
+    // alert(1)
+    // var vConsole = new VConsole();
+    // console.log('Hello world');
+  </script>
+
+  <script src='https://res.wx.qq.com/open/js/jweixin-1.2.0.js'></script>
+  <script>
+    wx.config({
+      debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+      appId: '<%= jsapi.appId %>', // 必填，公众号的唯一标识
+      timestamp: '<%= jsapi.timestamp %>', // 必填，生成签名的时间戳
+      nonceStr: '<%= jsapi.nonceStr %>', // 必填，生成签名的随机串
+      signature: '<%= jsapi.signature %>',// 必填，签名，见附录1
+      jsApiList: [
+        "onMenuShareTimeline",
+        "onMenuShareAppMessage"
+      ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+    });
+
+    wx.ready(function () {
+      wx.onMenuShareAppMessage({
+        title: '超碧答题王', // 分享标题
+        desc: '超碧一营前置学习之头脑王者，等你来战', // 分享描述
+        link: 'https://game2.stackh.cn/web/faq/2/', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+        imgUrl: 'http://qn.kiis.cn/aaa2/share.jpg', // 分享图标
+        type: '', // 分享类型,music、video或link，不填默认为link
+        dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+        success: function () {
+          // 用户确认分享后执行的回调函数
+        },
+        cancel: function () {
+          // 用户取消分享后执行的回调函数
+        }
+      });
+      wx.onMenuShareTimeline({
+        title: '超碧答题王', // 分享标题
+        link: 'https://game2.stackh.cn/web/faq/2/',
+        imgUrl: 'http://qn.kiis.cn/aaa2/share.jpg', // 分享图标
+        success: function () {
+          // 用户确认分享后执行的回调函数
+        }
+      })
+    })
+
+  </script>
+
+  <!-- 第三方库 -->
+  <script src="/faq/app/js/vendor/polyfill.min.js"></script>
+  <script src="/faq/app/js/vendor/md5.min.js"></script>
+  <script src="/faq/app/js/vendor/axios.min.js"></script>
+  <script src="/faq/app/js/vendor/fastclick.min.js"></script>
+  <script src="/faq/app/js/vendor/vue.min.js"></script>
+  <!-- 主入口 -->
+  <script src="/faq/app/js/store.js"></script>
+  <script src="/faq/app/js/main.js"></script>
+</body>
+
+</html>

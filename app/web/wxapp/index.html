@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>jssdk test beta</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <link rel='stylesheet' href='/stylesheets/style.css' />
+  <style>
+    * {
+      font-size: 30px;
+    
+    }
+    body{
+      width: 100%;
+      overflow-y: auto;
+      word-break: break-all;
+
+    }
+    img{
+      width: 140px;
+    }
+  </style>
+</head>
+
+<body>
+    <a href="/h5/sign/about/1/">about</a>
+
+  
+    <img src="<%= userinfo['headimgurl'] %>" alt="">
+    <h1>用户名 : <%= userinfo['nickname'] %></h1>
+    <h1>openid : <%= userinfo['openid'] %></h1>
+
+    <%= JSON.stringify(userinfo) %>
+    <hr>
+      <script src='http://res.wx.qq.com/open/js/jweixin-1.2.0.js'></script>
+      <script>
+        wx.config({
+          debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+          appId: '<%= jsapi.appId %>', // 必填，公众号的唯一标识
+          timestamp: '<%= jsapi.timestamp %>', // 必填，生成签名的时间戳
+          nonceStr: '<%= jsapi.nonceStr %>', // 必填，生成签名的随机串
+          signature: '<%= jsapi.signature %>',// 必填，签名，见附录1
+          jsApiList: [
+            "onMenuShareTimeline",
+            "onMenuShareAppMessage" 
+          ] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+        });
+
+        wx.ready(function () {
+          wx.onMenuShareAppMessage({
+            title: '这是测试分享朋友111111111', // 分享标题
+            desc: '这是测试分享', // 分享描述
+            link: 'http://my.stackh.cn/web/wxapp', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+            imgUrl: '', // 分享图标
+            type: '', // 分享类型,music、video或link，不填默认为link
+            dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+            success: function () {
+              // 用户确认分享后执行的回调函数
+            },
+            cancel: function () {
+              // 用户取消分享后执行的回调函数
+            }
+          });
+          wx.onMenuShareTimeline({
+            title: '这是测试分享朋友圈', // 分享标题
+            link: '这是测试分享朋友圈', // 分享链接，该链接域名或路径必须与当前页面对应的公众号JS安全域名一致
+            imgUrl: '', // 分享图标
+            success: function () {
+              // 用户确认分享后执行的回调函数
+            }
+          })
+        })
+
+      </script>
+</body>
+
+</html>
